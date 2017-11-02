@@ -1,0 +1,30 @@
+h1{
+    font-family:sans-serif;
+    font-weight: 100;
+    text-align: center;
+    letter-spacing: 4px;
+ 
+    
+}
+
+.age{
+    text-align:center;
+    font-family: sans-serif;
+    font-size: 29px;
+}
+
+.avg_party{
+top:400px;
+}
+
+#chart_s .x.axis text {
+ text-anchor: end !important;
+ transform: rotate(-45deg);
+}
+
+   
+   
+
+.gender{
+    height: 400px;
+}

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    
+    <link rel="stylesheet" href="style.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/dc/2.1.8/dc.min.css"/>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.12/crossfilter.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dc/2.1.8/dc.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/queue-async/1.0.7/queue.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div>
+                <h1>How represented are we?</h1>
+                
+            </div>
+            
+        </div>
+        <div class="row gender">
+            <h1>Gender?</h1>
+            <div class="col-lg-offset-4 col-lg-4">
+        <div  id="chart1"></div> 
+                <div  id="chart2"><p1>Number of TD'S </p1></div><br>
+                
+               
+                
+
+        </div>
+        </div>
+        <div class="row gender">
+         
+       
+        <h1>The average age of an Irish TD </h1>
+        <div class="age" >
+        <div class="avg_age" id="chart3"></div>
+        </div>
+        <h1> Years Old </h1>
+        <h1>The average age of Ireland<br>36.40<br>Years Old</h1>
+        <h1>The total age of Irish TD'S<br><div class="avg_age" id="chart6"></div></h1>
+        </div>
+        <div class="row gender">
+            <h1 class="page">Ethnicty?</h1>
+            <div id="chart4"></div>
+            <div id="chart5"></div>
+            
+            <div class="row gender">
+                <h1 class="page">Political Party?</h1>
+                <div id="chart_s"></div>
+                <div id="chart_d"></div>
+                
+                
+            </div>
+            
+            
+            
+            
+        </div>
+        </div>
+       
+
+    <script>
+    queue()
+        .defer(d3.csv, "data/tds.csv")
+        .await(makeGraphs);
+        
+         function makeGraphs(error, tdsData) {
+            var ndx = crossfilter(tdsData);
+            
+            tdsData.forEach(function(d) {
+                d.Age = parseInt(d.Age);
+            })
+            
+        
+            var gender_dim = ndx.dimension(dc.pluck('Gender'));
+            var count = gender_dim.group();
+        
+            dc.barChart('#chart1')
+                .height(300)
+                .width(400)
+                .margins({top:10, right:50, bottom:30, left:50})
+                .dimension(gender_dim)
+                .group(count)
+                .valueAccessor(function(d){
+                    return (d.value/158)*100
+                })
+                
+                .transitionDuration(500)
+                .renderHorizontalGridLines(true)
+                .x(d3.scale.ordinal())
+                .xUnits(dc.units.ordinal)
+                .yAxisLabel("Number of TD'S")
+                .yAxis().ticks(10);
+                
+        
+         var number_of_tds = ndx.groupAll();
+        
+        dc.numberDisplay("#chart2")
+            .formatNumber(d3.format("d"))
+            .valueAccessor(function (d) {
+                return (+d);
+            })
+            .group(number_of_tds);  
+            
+           
+            
+        var average_age_tds = ndx.groupAll().reduce(
+            function (p, v) {
+                ++p.count;
+                p.total += v.Age;
+                p.average = p.total / p.count;
+                return p;
+            },
+            function (p, v) {
+                --p.count;
+                if (p.count === 0) {
+                    console.log("Zero")
+                    p.total = 0;
+                    p.average = 0;
+                } else {
+                    p.total -= v.Age;
+                    p.average = p.total / p.count;
+                };
+                return p;
+            },
+            function () {
+                return {count: 0, total: 0, average: 0};
+            }
+        );
+        
+     dc.numberDisplay("#chart3")
+            .formatNumber(d3.format(".2f"))
+            .valueAccessor(function (d) {
+                
+                return (d.average);
+            })
+            .group(average_age_tds)
+       
+       
+      var total_age = ndx.groupAll().reduceSum(dc.pluck('Age'));
+       
+        var chart = dc.numberDisplay("#chart6");
+        chart
+            .formatNumber(d3.format("d"))
+            .valueAccessor(function (d) {
+                return (+d);
+            })
+            .group(total_age)
+            
+            
+              var gender_dim = ndx.dimension(dc.pluck('Ethnicty'));
+            var count_by_rank = gender_dim.group();
+            
+            dc.barChart('#chart4')
+                .height(300)
+                .width(400)
+                .margins({top:10, right:50, bottom:30, left:50})
+                .dimension(gender_dim)
+                .group(count_by_rank)
+                .transitionDuration(500)
+                .renderHorizontalGridLines(true)
+                .x(d3.scale.ordinal())
+                .xUnits(dc.units.ordinal)
+                .yAxisLabel("Number of TD'S")
+                .yAxis().ticks(10);
+                
+       
+      
+      var genderColors = d3.scale.ordinal()
+      .domain(["F","M"])
+      .range(["pink","blue"]);
+      
+        var party_dim = ndx.dimension(function(d){
+            return [d.Party,d.Age, d.Gender, d.Name]
+        });
+        
+        var group = party_dim.group();
+        
+        console.log(group.all())
+        
+        var age_dim = ndx.dimension(dc.pluck('Age'));
+        
+        var minAge = age_dim.bottom(1)[0].age;
+        var maxAge = age_dim.top(1)[0].age;
+        
+        dc.scatterPlot("#chart_s")
+        .width(800)
+        .height(400)
+        .x(d3.scale.ordinal())
+        .xUnits(dc.units.ordinal)
+        .brushOn(false)
+        .symbolSize(8)
+        .clipPadding(10)
+        .yAxisLabel("Age")
+        .xAxisLabel("Party")
+        .title(function (d) {
+            return d.key [3] + "(" + d.key[0] + ")";
+        })
+        .colorAccessor(function (d) {
+            return d.key[2];
+        })
+        .colors(genderColors)
+        .dimension(party_dim)
+        .group(group)
+        .margins({top:10, right:50, bottom:100, left:50})
+        
+         var partyname_dim = ndx.dimension(dc.pluck('Party'));
+            var partyam = partyname_dim.group();
+            
+            dc.rowChart('#chart_d')
+                .height(300)
+                .width(400)
+                .margins({top:10, right:50, bottom:30, left:50})
+                .dimension(partyname_dim)
+                .group(partyam)
+                .transitionDuration(500)
+                .renderHorizontalGridLines(true)
+                .x(d3.scale.ordinal())
+                .xUnits(dc.units.ordinal)
+                .yAxisLabel("Number of TD'S")
+                .yAxis().ticks(10)
+                .cap(5);
+       
+             
+                
+                
+            
+         dc.renderAll();
+    
+                 }
+                  queue()
+        .defer(d3.csv, "data/trueethnic.csv")
+        .await(makeGraph);
+        
+         function makeGraph(error, trueethnicData) {
+            var ndx = crossfilter(trueethnicData);
+            var race_dim = ndx.dimension(dc.pluck('race'));
+            var count = race_dim.group().reduceSum(dc.pluck('population'));
+            dc.barChart('#chart5')
+                .height(300)
+                .width(800)
+                .margins({top:10, right:50, bottom:30, left:50})
+                .dimension(race_dim)
+                .group(count)
+                .transitionDuration(500)
+                .renderHorizontalGridLines(true)
+                .x(d3.scale.ordinal())
+                .xUnits(dc.units.ordinal)
+                .yAxisLabel("")
+                .yAxis().ticks(10);
+            
+            
+                
+                 dc.renderAll();
+    
+                 }
+                 
+    </script>
+
+</body>
+</html>
