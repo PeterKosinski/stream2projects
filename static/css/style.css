@@ -40,8 +40,8 @@ h1{
  transform: rotate(-45deg);
 }
 
-#chart_d {
-  color:black;
+#chart_d g.row text{
+   fill:black;
 }
 
    
